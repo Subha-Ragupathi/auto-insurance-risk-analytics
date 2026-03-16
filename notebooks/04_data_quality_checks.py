@@ -7,7 +7,7 @@
 
 # COMMAND ----------
 
-from pyspark.sql.functions import col, count, when, lit, sum as _sum
+from pyspark.sql.functions import col, count, when
 import logging
 
 logging.basicConfig(level=logging.INFO)

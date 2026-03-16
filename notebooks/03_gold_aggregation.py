@@ -8,7 +8,7 @@
 # COMMAND ----------
 
 from pyspark.sql.functions import (
-    col, count, sum as _sum, avg, min as _min, max as _max, round as _round, when, lit
+    col, count, sum as _sum, avg, min as _min, max as _max, round as _round, when
 )
 import logging
 
