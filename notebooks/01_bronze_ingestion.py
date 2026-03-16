@@ -82,7 +82,7 @@ try:
     logger.info(f"Raw CSV row count: {raw_count}")
     assert raw_count > 0, "Source CSV is empty — aborting bronze write."
 
-    df.write.format("delta").mode("overwrite").save(BRONZE_PATH)
+    df.write.format("delta").mode("overwrite").option("overwriteSchema", "true").save(BRONZE_PATH)
 
     bronze_count = spark.read.format("delta").load(BRONZE_PATH).count()
     logger.info(f"Bronze Delta row count: {bronze_count}")

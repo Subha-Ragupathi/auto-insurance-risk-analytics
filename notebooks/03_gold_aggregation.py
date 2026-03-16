@@ -84,7 +84,7 @@ for table_name, group_col in GOLD_TABLES.items():
     try:
         summary = build_claim_summary(df, group_col, table_name)
         output_path = f"{GOLD_BASE}{table_name}"
-        summary.write.format("delta").mode("overwrite").save(output_path)
+        summary.write.format("delta").mode("overwrite").option("overwriteSchema", "true").save(output_path)
 
         row_count = spark.read.format("delta").load(output_path).count()
         logger.info(f"Gold table '{table_name}' written — {row_count} rows.")
@@ -104,5 +104,5 @@ portfolio_summary = df.agg(
     _max("customer_age").alias("max_customer_age"),
 )
 
-portfolio_summary.write.format("delta").mode("overwrite").save(f"{GOLD_BASE}portfolio_summary")
+portfolio_summary.write.format("delta").mode("overwrite").option("overwriteSchema", "true").save(f"{GOLD_BASE}portfolio_summary")
 logger.info("Gold layer created successfully — all tables written.")

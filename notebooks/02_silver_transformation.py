@@ -107,7 +107,7 @@ logger.info(f"Rows removed during cleansing: {bronze_count - silver_count}")
 
 # --- persist ------------------------------------------------------------------
 try:
-    clean_df.write.format("delta").mode("overwrite").save(SILVER_PATH)
+    clean_df.write.format("delta").mode("overwrite").option("overwriteSchema", "true").save(SILVER_PATH)
     persisted_count = spark.read.format("delta").load(SILVER_PATH).count()
     assert persisted_count == silver_count, (
         f"Row count mismatch: expected={silver_count}, persisted={persisted_count}"
