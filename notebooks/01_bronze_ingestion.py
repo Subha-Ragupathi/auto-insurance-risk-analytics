@@ -17,7 +17,7 @@ logger = logging.getLogger("bronze_ingestion")
 # COMMAND ----------
 
 # --- configuration -----------------------------------------------------------
-RAW_PATH = "/Volumes/workspace/default/raw/Insurance_claims_data.csv"
+RAW_PATH = "/Volumes/workspace/default/raw/Insurance claims data.csv"
 BRONZE_PATH = "/Volumes/workspace/default/bronze/insurance_policy_data"
 
 # COMMAND ----------
