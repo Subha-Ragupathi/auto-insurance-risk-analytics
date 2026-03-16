@@ -3,8 +3,6 @@
 # MAGIC # Master Pipeline — End-to-End Orchestration
 # MAGIC Executes the full medallion pipeline in sequence:
 # MAGIC bronze → silver → gold → data quality.
-# MAGIC
-# MAGIC Each step is timed and logged. The pipeline halts on the first failure.
 
 # COMMAND ----------
 
@@ -27,7 +25,11 @@ step_timings = {}
 logger.info("Step 1/4: Starting bronze ingestion...")
 step_start = time.time()
 
+# COMMAND ----------
+
 # MAGIC %run ./01_bronze_ingestion
+
+# COMMAND ----------
 
 step_timings["bronze_ingestion"] = round(time.time() - step_start, 2)
 logger.info(f"Step 1/4: Bronze ingestion complete ({step_timings['bronze_ingestion']}s)")
@@ -42,7 +44,11 @@ logger.info(f"Step 1/4: Bronze ingestion complete ({step_timings['bronze_ingesti
 logger.info("Step 2/4: Starting silver transformation...")
 step_start = time.time()
 
+# COMMAND ----------
+
 # MAGIC %run ./02_silver_transformation
+
+# COMMAND ----------
 
 step_timings["silver_transformation"] = round(time.time() - step_start, 2)
 logger.info(f"Step 2/4: Silver transformation complete ({step_timings['silver_transformation']}s)")
@@ -57,7 +63,11 @@ logger.info(f"Step 2/4: Silver transformation complete ({step_timings['silver_tr
 logger.info("Step 3/4: Starting gold aggregation...")
 step_start = time.time()
 
+# COMMAND ----------
+
 # MAGIC %run ./03_gold_aggregation
+
+# COMMAND ----------
 
 step_timings["gold_aggregation"] = round(time.time() - step_start, 2)
 logger.info(f"Step 3/4: Gold aggregation complete ({step_timings['gold_aggregation']}s)")
@@ -72,7 +82,11 @@ logger.info(f"Step 3/4: Gold aggregation complete ({step_timings['gold_aggregati
 logger.info("Step 4/4: Starting data quality checks...")
 step_start = time.time()
 
+# COMMAND ----------
+
 # MAGIC %run ./04_data_quality_checks
+
+# COMMAND ----------
 
 step_timings["data_quality"] = round(time.time() - step_start, 2)
 logger.info(f"Step 4/4: Data quality checks complete ({step_timings['data_quality']}s)")
