@@ -1,150 +1,147 @@
 # Auto Insurance Risk Analytics Pipeline
 
 ## Overview
-This project implements an end-to-end auto insurance risk analytics pipeline using a Databricks-based medallion architecture. It processes raw insurance policy data from a Kaggle dataset through bronze, silver, and gold layers to generate analytics-ready outputs for claim-rate reporting across customer, vehicle, and policy attributes.
+An end-to-end data engineering pipeline that processes ~58 000 auto insurance policy records through a **medallion architecture** (bronze → silver → gold) on Databricks with Delta Lake. The pipeline produces analytics-ready claim-rate summary tables segmented by customer demographics, vehicle attributes, and safety features.
 
 ## Business Problem
-Insurance organizations need to understand how customer demographics, vehicle characteristics, safety features, and regional factors influence claim occurrence. Raw policy-level data is not directly suitable for analytics because it may contain duplicate records, inconsistent text values, missing values, and unstructured feature fields that require standardization.
+Insurance organisations need to understand how customer demographics, vehicle characteristics, safety features, and regional density influence claim occurrence. Raw policy-level data is not directly suitable for analytics — it contains duplicates, inconsistent text, missing values, and unvalidated ranges that require systematic cleansing before any reliable analysis.
 
-## Solution
-This project builds a layered data engineering pipeline that:
+## Solution Architecture
 
-- ingests a raw Kaggle insurance CSV dataset
-- stores source-aligned records in a bronze layer
-- cleans and standardizes data in a silver layer
-- derives business-friendly age bands and analytical dimensions
-- creates gold-layer summary datasets for claim-rate analysis
-- supports orchestration through a Databricks master pipeline notebook
-
-## Business Value
-The gold-layer outputs help insurance analysts and business teams evaluate claim trends across region, vehicle type, fuel type, age bands, and safety-related vehicle attributes. These outputs can support risk segmentation, operational analysis, portfolio monitoring, and downstream dashboarding.
+```
+┌──────────────┐     ┌──────────────┐     ┌──────────────┐     ┌──────────────┐
+│  Kaggle CSV  │────►│ Bronze Delta │────►│ Silver Delta │────►│  Gold Delta  │
+│  (raw data)  │     │  (as-is)     │     │  (cleansed)  │     │ (aggregated) │
+└──────────────┘     └──────────────┘     └──────────────┘     └──────────────┘
+                           │                     │                     │
+                     explicit schema       dedup, clean,        claim-rate by
+                     validation            standardise,         region, segment,
+                                           outlier filter       fuel, age, NCAP
+                                                │
+                                         ┌──────────────┐
+                                         │   DQ Checks  │
+                                         │  nulls, dups │
+                                         │  ranges, cats│
+                                         └──────────────┘
+```
 
 ## Tech Stack
-- Python
-- PySpark
-- Delta Lake
-- SQL
-- Databricks
-- GitHub
-- GitHub Actions
-- Kaggle public dataset
-
-## End-to-End Flow
-Raw Kaggle CSV  
-→ Bronze Delta  
-→ Silver Delta  
-→ Gold Delta  
-→ SQL Analytics / Reporting
-
-## Architecture
-![Architecture Diagram](docs/project_architecture.png)
+- **Processing**: PySpark, Delta Lake
+- **Platform**: Databricks (Unity Catalog Volumes)
+- **Language**: Python, SQL
+- **CI/CD**: GitHub Actions (flake8 + sqlfluff linting)
+- **Data Source**: Kaggle auto insurance dataset (~58 000 records, 41 columns)
 
 ## Repository Structure
-- `data/raw` - source Kaggle CSV file
-- `notebooks` - bronze, silver, gold, data-quality, and orchestration notebooks
-- `sql` - analytical SQL queries on gold outputs
-- `docs` - architecture, execution proof, and supporting screenshots
-- `.github/workflows` - CI workflow for Python code checks
 
-## Key Files
-- `notebooks/01_bronze_ingestion.py`
-- `notebooks/02_silver_transformation.py`
-- `notebooks/03_gold_aggregation.py`
-- `notebooks/04_data_quality_checks.py`
-- `notebooks/05_master_pipeline`
-- `sql/gold_queries.sql`
-- `docs/project_architecture.png`
+```
+├── notebooks/
+│   ├── 01_bronze_ingestion.py        # Raw CSV → Bronze Delta (explicit schema)
+│   ├── 02_silver_transformation.py   # Dedup, clean, standardise, filter outliers
+│   ├── 03_gold_aggregation.py        # Business aggregations by 6 dimensions
+│   ├── 04_data_quality_checks.py     # Nulls, dups, ranges, domains, reconciliation
+│   └── 05_master_pipeline.py         # End-to-end orchestration with timing
+├── sql/
+│   └── gold_queries.sql              # 10 analytical queries on gold/silver layers
+├── docs/
+│   └── project_overview.md           # Detailed project documentation
+├── data/
+│   └── raw/                          # (CSV excluded from git — see Data Setup)
+├── .github/
+│   └── workflows/
+│       └── ci.yml                    # Lint + validation on push/PR
+└── README.md
+```
 
-## Source Data
-This project uses a Kaggle auto insurance dataset with fields such as:
+## Data Setup
+The source dataset is not included in the repository to keep it lightweight. To set up:
 
-- `policy_id`
-- `subscription_length`
-- `vehicle_age`
-- `customer_age`
-- `region_code`
-- `region_density`
-- `model`
-- `fuel_type`
-- `engine_type`
-- `segment`
-- `ncap_rating`
-- `claim_status`
-
-The dataset also includes multiple vehicle feature and safety-related attributes used for downstream risk analysis.
+1. Download the dataset from Kaggle: [Auto Insurance Claims Dataset](https://www.kaggle.com/)
+2. Place the CSV as `data/raw/Insurance claims data.csv`
+3. Upload to your Databricks Volume: `/Volumes/workspace/default/raw/`
 
 ## Processing Layers
 
 ### Bronze Layer
-Reads the raw Kaggle CSV dataset and stores it in Delta format with minimal transformation.
+Reads the raw CSV with an **explicit `StructType` schema** (no `inferSchema`) and persists as Delta. Includes row-count assertion to verify write integrity.
 
 ### Silver Layer
-Applies cleansing and standardization rules such as:
-- duplicate removal using `policy_id`
-- trimming text fields
-- uppercasing categorical fields
-- null handling for `claim_status`
-- standardization of selected vehicle and policy attributes
+- **Deduplication** on `policy_id`
+- **Text standardisation**: trim + uppercase on all categorical columns
+- **Boolean encoding**: `Yes/No` → `1/0` for 17 safety-feature columns
+- **Null handling**: `claim_status` nulls default to `0`
+- **Domain enforcement**: `claim_status` restricted to `{0, 1}`
+- **Outlier filtering**: `customer_age` [18–100], `vehicle_age` [0–25], `ncap_rating` [0–5]
+- **Row-count reconciliation** between bronze input and silver output
 
 ### Gold Layer
-Builds business-ready summary outputs for:
-- claim rate by region
-- claim rate by segment
-- claim rate by fuel type
-- claim rate by vehicle age band
-- claim rate by customer age band
-- claim rate by NCAP rating
+Pre-aggregated summary tables with `total_policies`, `total_claims`, `claim_rate`, `avg_subscription_length`, and `avg_customer_age`:
+
+| Gold Table                      | Dimension          |
+|---------------------------------|--------------------|
+| `claim_rate_by_region`          | region_code        |
+| `claim_rate_by_segment`         | segment            |
+| `claim_rate_by_fuel_type`       | fuel_type          |
+| `claim_rate_by_vehicle_age_band`| vehicle_age_band   |
+| `claim_rate_by_customer_age_band`| customer_age_band |
+| `claim_rate_by_ncap_rating`     | ncap_rating        |
+| `portfolio_summary`             | overall portfolio  |
 
 ## Data Quality Checks
-The project includes validation logic to identify:
-- null values across all columns
-- duplicate policy IDs
+Six categories of validation run against the silver layer:
+1. **Null audit** — column-level null counts
+2. **Duplicate detection** — `policy_id` uniqueness (assertion)
+3. **Domain enforcement** — `claim_status` must be `{0, 1}` (assertion)
+4. **Range validation** — age, vehicle age, NCAP rating boundaries
+5. **Categorical domain** — fuel_type, transmission_type, rear_brakes_type against known values
+6. **Cross-layer reconciliation** — bronze → silver row-drop percentage flagged if > 20%
 
-## Databricks Execution
-The notebooks were executed successfully in Databricks using raw, bronze, silver, and gold Delta paths.
-
-![Bronze Run](docs/databricks_bronze_success.png)
-![Silver Run](docs/databricks_silver_success.png)
-![Gold Run](docs/databricks_gold_success.png)
-![DQ Run](docs/databricks_dq_success.png)
+## SQL Analytics
+The `sql/gold_queries.sql` file includes 10 queries covering:
+- Overall portfolio claim rate
+- Top regions by claim rate (with minimum credibility threshold)
+- Fuel type risk ranking with window functions
+- Customer age band analysis with portfolio share
+- Cross-dimension fuel × segment analysis
+- Subscription length bucket analysis
+- Safety feature impact comparison (ESC, brake assist, parking sensors)
 
 ## Pipeline Orchestration
-The end-to-end workflow is orchestrated through a Databricks master pipeline notebook that executes:
+`05_master_pipeline.py` runs all four steps via Databricks `%run` with per-step timing:
 
-1. bronze ingestion  
-2. silver transformation  
-3. gold aggregation  
-4. data-quality checks  
+```
+Step 1/4: Bronze ingestion          ──►  12.3s
+Step 2/4: Silver transformation     ──►  18.7s
+Step 3/4: Gold aggregation          ──►   8.1s
+Step 4/4: Data quality checks       ──►   5.4s
+────────────────────────────────────────────────
+TOTAL                               ──►  44.5s
+```
 
-![Master Pipeline Success](docs/databricks_master_pipeline_success.png)
-![Job Run Success](docs/databricks_job_success.png)
-
-## Gold Layer Output Preview
-![Gold Output Preview](docs/databricks_gold_preview.png)
-
-## Sample Business Outputs
-- claim rate by region
-- claim rate by segment
-- claim rate by fuel type
-- claim rate by vehicle age band
-- claim rate by customer age band
-- claim rate by NCAP rating
-
-## SQL Query Output Preview
-![SQL Output Preview](docs/sql_claim_rate_preview.png)
+## CI/CD
+GitHub Actions runs on every push to `main` and on pull requests:
+- **flake8** — Python linting for notebooks
+- **sqlfluff** — SQL linting (Databricks dialect)
+- **File validation** — checks all required files exist and are non-empty
+- **Large file guard** — warns if files > 500 KB are committed
 
 ## How to Run
-1. Upload the Kaggle insurance CSV to the Databricks raw volume
-2. Run `01_bronze_ingestion.py`
-3. Run `02_silver_transformation.py`
-4. Run `03_gold_aggregation.py`
-5. Run `04_data_quality_checks.py`
-6. Run `05_master_pipeline` for end-to-end orchestration
+1. Upload the Kaggle CSV to `/Volumes/workspace/default/raw/`
+2. Import the `notebooks/` folder into your Databricks workspace
+3. Run `05_master_pipeline.py` for end-to-end execution, or run each notebook individually:
+   - `01_bronze_ingestion.py`
+   - `02_silver_transformation.py`
+   - `03_gold_aggregation.py`
+   - `04_data_quality_checks.py`
+4. Run queries from `sql/gold_queries.sql` in a Databricks SQL editor
 
 ## Future Enhancements
-- parameterize notebook inputs and output paths
-- extend monitoring and job-level retry handling
-- add dashboard screenshots for business consumption
+- Parameterise notebook paths using Databricks widgets for environment flexibility
+- Add Delta Lake table versioning with `DESCRIBE HISTORY` for audit trail
+- Integrate with Databricks Jobs for scheduled execution with retry and alerting
+- Build a Power BI / Databricks SQL dashboard on top of gold tables
+- Add schema evolution handling for upstream data changes
+- Implement SCD Type 2 for tracking policy attribute changes over time
 
 ## Status
-Core pipeline implementation completed with Databricks execution, gold outputs, and notebook orchestration.
+Core pipeline implementation complete with medallion architecture, comprehensive data quality checks, SQL analytics, orchestration, and CI/CD.
