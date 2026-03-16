@@ -1,0 +1,74 @@
+name: CI — Lint & Validate
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint-and-validate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install flake8 sqlfluff
+
+      - name: Lint Python notebooks
+        run: |
+          flake8 notebooks/ \
+            --max-line-length 120 \
+            --ignore E501,W503,E402 \
+            --exclude __pycache__
+
+      - name: Lint SQL queries
+        run: |
+          sqlfluff lint sql/ \
+            --dialect databricks \
+            || true  # non-blocking on first pass
+
+      - name: Validate no large files committed
+        run: |
+          MAX_SIZE_KB=500
+          echo "Checking for files larger than ${MAX_SIZE_KB}KB..."
+          LARGE_FILES=$(find . -type f -not -path './.git/*' -size +${MAX_SIZE_KB}k)
+          if [ -n "$LARGE_FILES" ]; then
+            echo "WARNING: Large files detected:"
+            echo "$LARGE_FILES"
+          else
+            echo "No large files found."
+          fi
+
+      - name: Verify required files exist
+        run: |
+          REQUIRED_FILES=(
+            "notebooks/01_bronze_ingestion.py"
+            "notebooks/02_silver_transformation.py"
+            "notebooks/03_gold_aggregation.py"
+            "notebooks/04_data_quality_checks.py"
+            "notebooks/05_master_pipeline.py"
+            "sql/gold_queries.sql"
+            "README.md"
+          )
+          for f in "${REQUIRED_FILES[@]}"; do
+            if [ ! -f "$f" ]; then
+              echo "MISSING: $f"
+              exit 1
+            fi
+            # check file is not empty
+            if [ ! -s "$f" ]; then
+              echo "EMPTY: $f"
+              exit 1
+            fi
+          done
+          echo "All required files present and non-empty."
