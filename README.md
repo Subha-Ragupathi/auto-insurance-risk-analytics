@@ -27,7 +27,7 @@ Insurance organisations need to understand how customer demographics, vehicle ch
 
 ## Tech Stack
 - **Processing**: PySpark, Delta Lake
-- **Platform**: Databricks Community Edition (DBFS + Delta Lake)
+- **Platform**: Databricks (Unity Catalog Volumes, Serverless)
 - **Language**: Python, SQL
 - **CI/CD**: GitHub Actions (flake8 + sqlfluff linting)
 - **Data Source**: Kaggle auto insurance dataset (~58 000 records, 41 columns)
@@ -58,8 +58,8 @@ The source dataset is not included in the repository to keep it lightweight. To 
 
 1. Download the dataset from Kaggle: [Auto Insurance Claims Dataset](https://www.kaggle.com/)
 2. Rename the file to `Insurance_claims_data.csv` (replace spaces with underscores)
-3. In Databricks Community Edition, go to **Data → DBFS → FileStore → tables** and upload the CSV
-4. The file will be available at `/FileStore/tables/Insurance_claims_data.csv`
+3. In Databricks, navigate to **Catalog → workspace → default → raw** volume
+4. Upload the CSV — it will be available at `/Volumes/workspace/default/raw/Insurance_claims_data.csv`
 
 ## Processing Layers
 
@@ -127,7 +127,7 @@ GitHub Actions runs on every push to `main` and on pull requests:
 - **Large file guard** — warns if files > 500 KB are committed
 
 ## How to Run
-1. Upload the Kaggle CSV to `/FileStore/tables/`
+1. Upload the Kaggle CSV to the `raw` volume at **Catalog → workspace → default → raw**
 2. Import the `notebooks/` folder into your Databricks workspace
 3. Run `05_master_pipeline.py` for end-to-end execution, or run each notebook individually:
    - `01_bronze_ingestion.py`

@@ -18,8 +18,8 @@ logger = logging.getLogger("gold_aggregation")
 # COMMAND ----------
 
 # --- configuration -----------------------------------------------------------
-SILVER_PATH = "/delta/silver/insurance_policy_data_clean"
-GOLD_BASE   = "/delta/gold/"
+SILVER_PATH = "/Volumes/workspace/default/silver/insurance_policy_data_clean"
+GOLD_BASE   = "/Volumes/workspace/default/gold/"
 
 GOLD_TABLES = {
     "claim_rate_by_region":            "region_code",

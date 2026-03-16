@@ -16,8 +16,8 @@ logger = logging.getLogger("data_quality")
 # COMMAND ----------
 
 # --- configuration -----------------------------------------------------------
-BRONZE_PATH = "/delta/bronze/insurance_policy_data"
-SILVER_PATH = "/delta/silver/insurance_policy_data_clean"
+BRONZE_PATH = "/Volumes/workspace/default/bronze/insurance_policy_data"
+SILVER_PATH = "/Volumes/workspace/default/silver/insurance_policy_data_clean"
 
 dq_issues = []  # collect non-critical warnings
 

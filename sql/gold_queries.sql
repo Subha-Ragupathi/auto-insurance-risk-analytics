@@ -11,7 +11,7 @@ SELECT
     SUM(claim_status)                         AS total_claims,
     ROUND(AVG(claim_status), 4)               AS overall_claim_rate,
     ROUND(AVG(subscription_length), 2)        AS avg_subscription_months
-FROM delta.`/delta/silver/insurance_policy_data_clean`;
+FROM delta.`/Volumes/workspace/default/silver/insurance_policy_data_clean`;
 
 
 -- -----------------------------------------------------------------------------
@@ -23,7 +23,7 @@ SELECT
     total_claims,
     claim_rate,
     avg_subscription_length
-FROM delta.`/delta/gold/claim_rate_by_region`
+FROM delta.`/Volumes/workspace/default/gold/claim_rate_by_region`
 WHERE total_policies >= 100
 ORDER BY claim_rate DESC
 LIMIT 10;
@@ -38,7 +38,7 @@ SELECT
     total_claims,
     claim_rate,
     RANK() OVER (ORDER BY claim_rate DESC) AS risk_rank
-FROM delta.`/delta/gold/claim_rate_by_fuel_type`;
+FROM delta.`/Volumes/workspace/default/gold/claim_rate_by_fuel_type`;
 
 
 -- -----------------------------------------------------------------------------
@@ -50,7 +50,7 @@ SELECT
     total_claims,
     claim_rate,
     ROUND(total_policies * 100.0 / SUM(total_policies) OVER (), 2) AS pct_of_portfolio
-FROM delta.`/delta/gold/claim_rate_by_customer_age_band`
+FROM delta.`/Volumes/workspace/default/gold/claim_rate_by_customer_age_band`
 ORDER BY claim_rate DESC;
 
 
@@ -63,7 +63,7 @@ SELECT
     total_claims,
     claim_rate,
     ROUND(total_policies * 100.0 / SUM(total_policies) OVER (), 2) AS pct_of_portfolio
-FROM delta.`/delta/gold/claim_rate_by_vehicle_age_band`
+FROM delta.`/Volumes/workspace/default/gold/claim_rate_by_vehicle_age_band`
 ORDER BY claim_rate DESC;
 
 
@@ -75,7 +75,7 @@ SELECT
     total_policies,
     total_claims,
     claim_rate
-FROM delta.`/delta/gold/claim_rate_by_segment`
+FROM delta.`/Volumes/workspace/default/gold/claim_rate_by_segment`
 ORDER BY claim_rate DESC;
 
 
@@ -88,7 +88,7 @@ SELECT
     total_claims,
     claim_rate,
     avg_customer_age
-FROM delta.`/delta/gold/claim_rate_by_ncap_rating`
+FROM delta.`/Volumes/workspace/default/gold/claim_rate_by_ncap_rating`
 ORDER BY ncap_rating;
 
 
@@ -102,7 +102,7 @@ SELECT
     COUNT(policy_id)          AS total_policies,
     SUM(claim_status)         AS total_claims,
     ROUND(AVG(claim_status), 4) AS claim_rate
-FROM delta.`/delta/silver/insurance_policy_data_clean`
+FROM delta.`/Volumes/workspace/default/silver/insurance_policy_data_clean`
 GROUP BY UPPER(TRIM(fuel_type)), UPPER(TRIM(segment))
 HAVING COUNT(policy_id) >= 50
 ORDER BY claim_rate DESC
@@ -124,7 +124,7 @@ SELECT
     COUNT(policy_id)                   AS total_policies,
     SUM(claim_status)                  AS total_claims,
     ROUND(AVG(claim_status), 4)        AS claim_rate
-FROM delta.`/delta/silver/insurance_policy_data_clean`
+FROM delta.`/Volumes/workspace/default/silver/insurance_policy_data_clean`
 GROUP BY 1
 ORDER BY claim_rate DESC;
 
@@ -137,7 +137,7 @@ SELECT
     is_esc                AS has_feature,
     COUNT(*)              AS policies,
     ROUND(AVG(claim_status), 4) AS claim_rate
-FROM delta.`/delta/silver/insurance_policy_data_clean`
+FROM delta.`/Volumes/workspace/default/silver/insurance_policy_data_clean`
 GROUP BY is_esc
 
 UNION ALL
@@ -147,7 +147,7 @@ SELECT
     is_brake_assist       AS has_feature,
     COUNT(*)              AS policies,
     ROUND(AVG(claim_status), 4) AS claim_rate
-FROM delta.`/delta/silver/insurance_policy_data_clean`
+FROM delta.`/Volumes/workspace/default/silver/insurance_policy_data_clean`
 GROUP BY is_brake_assist
 
 UNION ALL
@@ -157,7 +157,7 @@ SELECT
     is_parking_sensors    AS has_feature,
     COUNT(*)              AS policies,
     ROUND(AVG(claim_status), 4) AS claim_rate
-FROM delta.`/delta/silver/insurance_policy_data_clean`
+FROM delta.`/Volumes/workspace/default/silver/insurance_policy_data_clean`
 GROUP BY is_parking_sensors
 
 ORDER BY feature, has_feature;
