@@ -1,0 +1,76 @@
+// Power BI measures for the Auto Insurance Risk Analytics dashboard
+// Assumes the cleaned silver table is imported as 'Policy Detail'
+
+Total Policies =
+COUNTROWS ( 'Policy Detail' )
+
+Total Claims =
+SUM ( 'Policy Detail'[claim_status] )
+
+Claim Rate =
+DIVIDE ( [Total Claims], [Total Policies] )
+
+Average Subscription Length =
+AVERAGE ( 'Policy Detail'[subscription_length] )
+
+Average Customer Age =
+AVERAGE ( 'Policy Detail'[customer_age] )
+
+Average Vehicle Age =
+AVERAGE ( 'Policy Detail'[vehicle_age] )
+
+Policies per Region =
+DISTINCTCOUNT ( 'Policy Detail'[policy_id] )
+
+Portfolio Claim Rate Benchmark =
+CALCULATE ( [Claim Rate], ALL ( 'Policy Detail' ) )
+
+Claim Rate Variance vs Portfolio =
+[Claim Rate] - [Portfolio Claim Rate Benchmark]
+
+Claim Rate Variance % =
+DIVIDE ( [Claim Rate Variance vs Portfolio], [Portfolio Claim Rate Benchmark] )
+
+High Risk Flag =
+IF ( [Claim Rate] > [Portfolio Claim Rate Benchmark] * 1.1, 1, 0 )
+
+Feature Adoption Rate =
+AVERAGEX ( 'Policy Detail', 'Policy Detail'[is_esc] )
+
+Policies with ESC =
+CALCULATE ( [Total Policies], 'Policy Detail'[is_esc] = 1 )
+
+Policies without ESC =
+CALCULATE ( [Total Policies], 'Policy Detail'[is_esc] = 0 )
+
+ESC Claim Rate =
+CALCULATE ( [Claim Rate], 'Policy Detail'[is_esc] = 1 )
+
+Non-ESC Claim Rate =
+CALCULATE ( [Claim Rate], 'Policy Detail'[is_esc] = 0 )
+
+Safety Feature Policy Count =
+VAR SelectedFeature = SELECTEDVALUE ( 'Safety Feature Selector'[Feature] )
+RETURN
+    SWITCH (
+        SelectedFeature,
+        "ESC", CALCULATE ( [Total Policies], 'Policy Detail'[is_esc] = 1 ),
+        "Brake Assist", CALCULATE ( [Total Policies], 'Policy Detail'[is_brake_assist] = 1 ),
+        "Parking Sensors", CALCULATE ( [Total Policies], 'Policy Detail'[is_parking_sensors] = 1 ),
+        "TPMS", CALCULATE ( [Total Policies], 'Policy Detail'[is_tpms] = 1 ),
+        "Parking Camera", CALCULATE ( [Total Policies], 'Policy Detail'[is_parking_camera] = 1 ),
+        BLANK ()
+    )
+
+Safety Feature Claim Rate =
+VAR SelectedFeature = SELECTEDVALUE ( 'Safety Feature Selector'[Feature] )
+RETURN
+    SWITCH (
+        SelectedFeature,
+        "ESC", CALCULATE ( [Claim Rate], 'Policy Detail'[is_esc] = 1 ),
+        "Brake Assist", CALCULATE ( [Claim Rate], 'Policy Detail'[is_brake_assist] = 1 ),
+        "Parking Sensors", CALCULATE ( [Claim Rate], 'Policy Detail'[is_parking_sensors] = 1 ),
+        "TPMS", CALCULATE ( [Claim Rate], 'Policy Detail'[is_tpms] = 1 ),
+        "Parking Camera", CALCULATE ( [Claim Rate], 'Policy Detail'[is_parking_camera] = 1 ),
+        BLANK ()
+    )

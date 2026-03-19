@@ -68,3 +68,7 @@ push to `main`:
 - **sqlfluff** lint on SQL queries (Databricks dialect)
 - Large-file check to prevent bloating the repo
 - Required-file existence and non-empty validation
+
+
+## Power BI Readiness
+The repository now includes a source-controlled Power BI starter kit in `powerbi/` with a dashboard build guide, reusable DAX measures, a safety-feature selector table, and a custom report theme. This makes the gold and silver outputs easier to publish as a governed BI semantic model without committing a binary `.pbix` file.

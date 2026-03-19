@@ -1,0 +1,62 @@
+{
+  "name": "Auto Insurance Risk Analytics",
+  "foreground": "#13293D",
+  "background": "#F7FAFC",
+  "tableAccent": "#1B4965",
+  "dataColors": [
+    "#1B4965",
+    "#5FA8D3",
+    "#62B6CB",
+    "#CAE9FF",
+    "#F4A259",
+    "#E76F51",
+    "#2A9D8F",
+    "#264653"
+  ],
+  "visualStyles": {
+    "*": {
+      "*": {
+        "title": [
+          {
+            "show": true,
+            "fontColor": { "solid": { "color": "#13293D" } },
+            "fontSize": 12,
+            "fontFamily": "Segoe UI Semibold"
+          }
+        ],
+        "labels": [
+          {
+            "color": { "solid": { "color": "#13293D" } },
+            "fontSize": 11,
+            "fontFamily": "Segoe UI"
+          }
+        ],
+        "background": [
+          {
+            "show": true,
+            "color": { "solid": { "color": "#FFFFFF" } },
+            "transparency": 0
+          }
+        ],
+        "border": [
+          {
+            "show": true,
+            "color": { "solid": { "color": "#D9E2EC" } },
+            "radius": 6
+          }
+        ]
+      }
+    },
+    "card": {
+      "*": {
+        "labels": [
+          {
+            "color": { "solid": { "color": "#1B4965" } },
+            "fontSize": 18,
+            "fontFamily": "Segoe UI Semibold"
+          }
+        ]
+      }
+    }
+  }
+}

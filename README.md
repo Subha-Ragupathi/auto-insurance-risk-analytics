@@ -45,6 +45,11 @@ Insurance organisations need to understand how customer demographics, vehicle ch
 │   └── gold_queries.sql              # 10 analytical queries on gold/silver layers
 ├── docs/
 │   └── project_overview.md           # Detailed project documentation
+├── powerbi/
+│   ├── README.md                     # Power BI dashboard build guide
+│   ├── insurance_risk_dashboard_measures.dax  # Reusable KPI measures
+│   ├── safety_feature_selector.csv            # Helper table for feature visuals
+│   └── auto_insurance_dashboard_theme.json    # Optional report theme
 ├── data/
 │   └── raw/                          # (CSV excluded from git — see Data Setup)
 ├── .github/
@@ -136,13 +141,22 @@ GitHub Actions runs on every push to `main` and on pull requests:
    - `04_data_quality_checks.py`
 4. Run queries from `sql/gold_queries.sql` in a Databricks SQL editor
 
+
+## Power BI Dashboard
+A source-controlled Power BI starter kit now lives in `powerbi/` and includes:
+- a dashboard build guide (`powerbi/README.md`)
+- reusable DAX measures for the silver layer semantic model
+- a custom JSON theme for report styling
+
+This keeps the BI design reproducible without committing a binary `.pbix` file.
+
 ## Future Enhancements
 - Parameterise notebook paths using Databricks widgets for environment flexibility
 - Add Delta Lake table versioning with `DESCRIBE HISTORY` for audit trail
 - Integrate with Databricks Jobs for scheduled execution with retry and alerting
-- Build a Power BI / Databricks SQL dashboard on top of gold tables
+- Publish the included Power BI dashboard starter kit to the Power BI Service
 - Add schema evolution handling for upstream data changes
 - Implement SCD Type 2 for tracking policy attribute changes over time
 
 ## Status
-Core pipeline implementation complete with medallion architecture, comprehensive data quality checks, SQL analytics, orchestration, and CI/CD.
+Core pipeline implementation complete with medallion architecture, comprehensive data quality checks, SQL analytics, orchestration, CI/CD, and a Power BI dashboard starter kit.
