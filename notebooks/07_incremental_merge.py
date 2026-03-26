@@ -14,7 +14,7 @@
 
 # COMMAND ----------
 
-from pyspark.sql.functions import col, current_timestamp, lit
+current_timestamp, lit
 import logging
 
 logging.basicConfig(level=logging.INFO)
