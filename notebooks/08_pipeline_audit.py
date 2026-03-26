@@ -12,7 +12,7 @@
 
 # COMMAND ----------
 
-from pyspark.sql.functions import current_timestamp, lit
+from pyspark.sql.functions import current_timestamp
 from pyspark.sql.types import (
     StructType, StructField, StringType, LongType, DoubleType, TimestampType
 )
