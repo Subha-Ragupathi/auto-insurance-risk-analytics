@@ -43,7 +43,7 @@ BRONZE_PATH = f"{VOLUME_ROOT}/bronze/insurance_policy_data"
 SILVER_PATH = f"{VOLUME_ROOT}/silver/insurance_policy_data_clean"
 GOLD_BASE = f"{VOLUME_ROOT}/gold/"
 EXPORT_PATH = f"{VOLUME_ROOT}/raw/exports/"
-AUDIT_LOG_PATH = "dbfs:/FileStore/auto_insurance/audit/pipeline_audit_log"
+AUDIT_LOG_PATH = f"{VOLUME_ROOT}/audit/pipeline_audit_log"
 
 # COMMAND ----------
 
