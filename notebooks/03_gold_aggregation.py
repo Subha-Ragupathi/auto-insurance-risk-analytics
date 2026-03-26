@@ -7,6 +7,10 @@
 
 # COMMAND ----------
 
+# MAGIC %run ./config
+
+# COMMAND ----------
+
 from pyspark.sql.functions import (
     col, count, sum as _sum, avg, min as _min, max as _max, round as _round, when
 )
@@ -14,21 +18,6 @@ import logging
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("gold_aggregation")
-
-# COMMAND ----------
-
-# --- configuration -----------------------------------------------------------
-SILVER_PATH = "/Volumes/workspace/default/silver/insurance_policy_data_clean"
-GOLD_BASE   = "/Volumes/workspace/default/gold/"
-
-GOLD_TABLES = {
-    "claim_rate_by_region":            "region_code",
-    "claim_rate_by_segment":           "segment",
-    "claim_rate_by_fuel_type":         "fuel_type",
-    "claim_rate_by_vehicle_age_band":  "vehicle_age_band",
-    "claim_rate_by_customer_age_band": "customer_age_band",
-    "claim_rate_by_ncap_rating":       "ncap_rating",
-}
 
 # COMMAND ----------
 

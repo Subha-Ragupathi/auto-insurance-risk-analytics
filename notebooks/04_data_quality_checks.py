@@ -7,17 +7,15 @@
 
 # COMMAND ----------
 
+# MAGIC %run ./config
+
+# COMMAND ----------
+
 from pyspark.sql.functions import col, count, when
 import logging
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("data_quality")
-
-# COMMAND ----------
-
-# --- configuration -----------------------------------------------------------
-BRONZE_PATH = "/Volumes/workspace/default/bronze/insurance_policy_data"
-SILVER_PATH = "/Volumes/workspace/default/silver/insurance_policy_data_clean"
 
 dq_issues = []  # collect non-critical warnings
 
@@ -75,14 +73,22 @@ logger.info(f"Invalid claim_status rows: {invalid_claim} (passed)")
 logger.info("Running range validations...")
 
 range_checks = {
-    "customer_age_below_18":  silver_df.filter(col("customer_age") < 18).count(),
-    "customer_age_above_100": silver_df.filter(col("customer_age") > 100).count(),
-    "vehicle_age_negative":   silver_df.filter(col("vehicle_age") < 0).count(),
-    "vehicle_age_above_25":   silver_df.filter(col("vehicle_age") > 25).count(),
-    "ncap_below_0":           silver_df.filter(col("ncap_rating") < 0).count(),
-    "ncap_above_5":           silver_df.filter(col("ncap_rating") > 5).count(),
-    "subscription_negative":  silver_df.filter(col("subscription_length") < 0).count(),
-    "airbags_negative":       silver_df.filter(col("airbags") < 0).count(),
+    f"customer_age_below_{CUSTOMER_AGE_MIN}":
+        silver_df.filter(col("customer_age") < CUSTOMER_AGE_MIN).count(),
+    f"customer_age_above_{CUSTOMER_AGE_MAX}":
+        silver_df.filter(col("customer_age") > CUSTOMER_AGE_MAX).count(),
+    "vehicle_age_negative":
+        silver_df.filter(col("vehicle_age") < VEHICLE_AGE_MIN).count(),
+    f"vehicle_age_above_{VEHICLE_AGE_MAX}":
+        silver_df.filter(col("vehicle_age") > VEHICLE_AGE_MAX).count(),
+    f"ncap_below_{NCAP_RATING_MIN}":
+        silver_df.filter(col("ncap_rating") < NCAP_RATING_MIN).count(),
+    f"ncap_above_{NCAP_RATING_MAX}":
+        silver_df.filter(col("ncap_rating") > NCAP_RATING_MAX).count(),
+    "subscription_negative":
+        silver_df.filter(col("subscription_length") < 0).count(),
+    "airbags_negative":
+        silver_df.filter(col("airbags") < 0).count(),
 }
 
 for check_name, violation_count in range_checks.items():
@@ -122,11 +128,11 @@ logger.info(
     f"Bronze → Silver row drop: {bronze_count - silver_count} rows ({drop_pct}%)"
 )
 
-if drop_pct > 20:
+if drop_pct > MAX_ROW_DROP_PCT:
     dq_issues.append(
         f"High row drop from bronze to silver: {drop_pct}% — review cleansing rules."
     )
-    logger.warning(f"Row drop exceeds 20% threshold: {drop_pct}%")
+    logger.warning(f"Row drop exceeds {MAX_ROW_DROP_PCT}% threshold: {drop_pct}%")
 
 # COMMAND ----------
 

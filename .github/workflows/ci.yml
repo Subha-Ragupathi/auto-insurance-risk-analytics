@@ -1,4 +1,4 @@
-name: CI — Lint & Validate
+name: CI — Lint & Test
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
     branches: [main]
 
 jobs:
-  lint-and-validate:
+  lint-and-test:
     runs-on: ubuntu-latest
 
     steps:
@@ -22,7 +22,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip install --upgrade pip
-          pip install flake8 sqlfluff
+          pip install -r requirements-dev.txt
 
       - name: Lint Python notebooks
         run: |
@@ -36,6 +36,10 @@ jobs:
           sqlfluff lint sql/ \
             --dialect databricks \
             || true  # non-blocking on first pass
+
+      - name: Run unit tests
+        run: |
+          pytest tests/ -v --tb=short
 
       - name: Validate no large files committed
         run: |
@@ -52,12 +56,18 @@ jobs:
       - name: Verify required files exist
         run: |
           REQUIRED_FILES=(
+            "notebooks/config.py"
             "notebooks/01_bronze_ingestion.py"
             "notebooks/02_silver_transformation.py"
             "notebooks/03_gold_aggregation.py"
             "notebooks/04_data_quality_checks.py"
             "notebooks/05_master_pipeline.py"
+            "notebooks/06_export_to_csv.py"
+            "notebooks/07_incremental_merge.py"
+            "notebooks/08_pipeline_audit.py"
             "sql/gold_queries.sql"
+            "tests/test_transformations.py"
+            "tests/test_config.py"
             "README.md"
           )
           for f in "${REQUIRED_FILES[@]}"; do
@@ -65,7 +75,6 @@ jobs:
               echo "MISSING: $f"
               exit 1
             fi
-            # check file is not empty
             if [ ! -s "$f" ]; then
               echo "EMPTY: $f"
               exit 1

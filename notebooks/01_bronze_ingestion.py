@@ -6,6 +6,10 @@
 
 # COMMAND ----------
 
+# MAGIC %run ./config
+
+# COMMAND ----------
+
 from pyspark.sql.types import (
     StructType, StructField, StringType, IntegerType, DoubleType
 )
@@ -13,12 +17,6 @@ import logging
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("bronze_ingestion")
-
-# COMMAND ----------
-
-# --- configuration -----------------------------------------------------------
-RAW_PATH = "/Volumes/workspace/default/raw/Insurance claims data.csv"
-BRONZE_PATH = "/Volumes/workspace/default/bronze/insurance_policy_data"
 
 # COMMAND ----------
 

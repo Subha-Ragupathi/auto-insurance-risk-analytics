@@ -6,6 +6,10 @@
 
 # COMMAND ----------
 
+# MAGIC %run ./config
+
+# COMMAND ----------
+
 import logging
 
 logging.basicConfig(level=logging.INFO)
@@ -13,22 +17,7 @@ logger = logging.getLogger("export_to_csv")
 
 # COMMAND ----------
 
-GOLD_BASE = "/Volumes/workspace/default/gold/"
-EXPORT_PATH = "/Volumes/workspace/default/raw/exports/"
-
-GOLD_TABLES = [
-    "claim_rate_by_region",
-    "claim_rate_by_segment",
-    "claim_rate_by_fuel_type",
-    "claim_rate_by_vehicle_age_band",
-    "claim_rate_by_customer_age_band",
-    "claim_rate_by_ncap_rating",
-    "portfolio_summary",
-]
-
-# COMMAND ----------
-
-for table_name in GOLD_TABLES:
+for table_name in GOLD_TABLE_NAMES:
     try:
         df = spark.read.format("delta").load(f"{GOLD_BASE}{table_name}")
         output_file = f"{EXPORT_PATH}{table_name}"
@@ -43,8 +32,6 @@ for table_name in GOLD_TABLES:
 # MAGIC ## Also export clean silver data for Power BI detailed analysis
 
 # COMMAND ----------
-
-SILVER_PATH = "/Volumes/workspace/default/silver/insurance_policy_data_clean"
 
 try:
     silver_df = spark.read.format("delta").load(SILVER_PATH)

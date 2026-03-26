@@ -6,18 +6,16 @@
 
 # COMMAND ----------
 
+# MAGIC %run ./config
+
+# COMMAND ----------
+
 from pyspark.sql.functions import col, trim, upper, when, lit, lower
 from pyspark.sql.types import IntegerType
 import logging
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("silver_transformation")
-
-# COMMAND ----------
-
-# --- configuration -----------------------------------------------------------
-BRONZE_PATH = "/Volumes/workspace/default/bronze/insurance_policy_data"
-SILVER_PATH = "/Volumes/workspace/default/silver/insurance_policy_data_clean"
 
 # COMMAND ----------
 
@@ -89,14 +87,20 @@ if invalid_claim > 0:
 # COMMAND ----------
 
 # --- outlier filtering --------------------------------------------------------
-# customer_age: realistic range 18–100
-# vehicle_age: realistic range 0–25
-# ncap_rating: valid range 0–5
 clean_df = (
     clean_df
-    .filter((col("customer_age") >= 18) & (col("customer_age") <= 100))
-    .filter((col("vehicle_age") >= 0) & (col("vehicle_age") <= 25))
-    .filter((col("ncap_rating") >= 0) & (col("ncap_rating") <= 5))
+    .filter(
+        (col("customer_age") >= CUSTOMER_AGE_MIN)
+        & (col("customer_age") <= CUSTOMER_AGE_MAX)
+    )
+    .filter(
+        (col("vehicle_age") >= VEHICLE_AGE_MIN)
+        & (col("vehicle_age") <= VEHICLE_AGE_MAX)
+    )
+    .filter(
+        (col("ncap_rating") >= NCAP_RATING_MIN)
+        & (col("ncap_rating") <= NCAP_RATING_MAX)
+    )
 )
 
 silver_count = clean_df.count()
