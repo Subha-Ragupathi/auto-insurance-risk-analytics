@@ -7,6 +7,10 @@
 
 # COMMAND ----------
 
+# MAGIC %run ./config
+
+# COMMAND ----------
+
 from pyspark.sql.functions import (
     col, count, sum as _sum, avg, min as _min, max as _max, round as _round, when
 )
@@ -14,21 +18,6 @@ import logging
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("gold_aggregation")
-
-# COMMAND ----------
-
-# --- configuration -----------------------------------------------------------
-SILVER_PATH = "/delta/silver/insurance_policy_data_clean"
-GOLD_BASE   = "/delta/gold/"
-
-GOLD_TABLES = {
-    "claim_rate_by_region":            "region_code",
-    "claim_rate_by_segment":           "segment",
-    "claim_rate_by_fuel_type":         "fuel_type",
-    "claim_rate_by_vehicle_age_band":  "vehicle_age_band",
-    "claim_rate_by_customer_age_band": "customer_age_band",
-    "claim_rate_by_ncap_rating":       "ncap_rating",
-}
 
 # COMMAND ----------
 
@@ -84,7 +73,7 @@ for table_name, group_col in GOLD_TABLES.items():
     try:
         summary = build_claim_summary(df, group_col, table_name)
         output_path = f"{GOLD_BASE}{table_name}"
-        summary.write.format("delta").mode("overwrite").save(output_path)
+        summary.write.format("delta").mode("overwrite").option("overwriteSchema", "true").save(output_path)
 
         row_count = spark.read.format("delta").load(output_path).count()
         logger.info(f"Gold table '{table_name}' written — {row_count} rows.")
@@ -104,5 +93,5 @@ portfolio_summary = df.agg(
     _max("customer_age").alias("max_customer_age"),
 )
 
-portfolio_summary.write.format("delta").mode("overwrite").save(f"{GOLD_BASE}portfolio_summary")
+portfolio_summary.write.format("delta").mode("overwrite").option("overwriteSchema", "true").save(f"{GOLD_BASE}portfolio_summary")
 logger.info("Gold layer created successfully — all tables written.")
