@@ -12,10 +12,17 @@ import os
 
 # --- environment toggle ------------------------------------------------------
 # Override via Databricks widget or environment variable; defaults to "prod".
+# --- environment toggle ------------------------------------------------------
+# Override via Databricks widget or environment variable; defaults to "prod".
+ENV = os.getenv("PIPELINE_ENV", "prod")
+
 try:
-    ENV = dbutils.widgets.get("env")  # noqa: F821
+    _widget_env = None
+    _widget_env = dbutils.widgets.get("env")  # noqa: F821
+    if _widget_env:
+        ENV = _widget_env
 except Exception:
-    ENV = os.getenv("PIPELINE_ENV", "prod")
+    pass
 
 # COMMAND ----------
 
